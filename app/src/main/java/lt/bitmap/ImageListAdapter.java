@@ -63,23 +63,30 @@ class ImageListAdapter extends BaseRecyclerViewAdapter<ImageListAdapter.ImageHol
         final Image image = mDataList.get(position);
         holder.mImageIv.setImageResource(R.color.defaultImageSource);
         if (image.getHeight() != mHeight) {
-            int width = mHeight * image.getWidth() / image.getHeight();
-            image.setWidth(Math.min(width, mMaxWidth));
-            image.setHeight(mHeight);
+            if (image.getHeight() == 0) {
+                image.setHeight(mHeight);
+                image.setWidth(mHeight);
+                image.setNeedResize(true);
+            } else {
+                int width = mHeight * image.getWidth() / image.getHeight();
+                image.setWidth(Math.min(width, mMaxWidth));
+                image.setHeight(mHeight);
+            }
         }
-        ViewGroup.LayoutParams layoutParams = holder.mImageIv.getLayoutParams();
-        layoutParams.height = image.getHeight();
-        layoutParams.width = image.getWidth();
-        holder.mImageIv.setLayoutParams(layoutParams);
+
+        resizeImageView(holder.mImageIv, image);
         holder.mImageIv.setTag(image.getUri().getPath());
 
-        Log.i(TAG, "start load:" + image.getUri().toString());
         Target target = new Target() {
             @Override
             public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
                 if (holder.mImageIv.getTag().equals(image.getUri().getPath())) {
-                    Log.i(TAG, "load success:" + image.getUri().toString());
-                    Log.i(TAG, "from:" + from);
+                    if (image.isNeedResize()) {
+                        image.setHeight(bitmap.getHeight());
+                        image.setWidth(bitmap.getWidth());
+                        resizeImageView(holder.mImageIv, image);
+                        image.setNeedResize(false);
+                    }
                     holder.mImageIv.setImageBitmap(bitmap);
                 }
             }
@@ -98,8 +105,15 @@ class ImageListAdapter extends BaseRecyclerViewAdapter<ImageListAdapter.ImageHol
         mPicasso.load(image.getUri())
                 .resize(image.getWidth(), image.getHeight())
                 .config(Bitmap.Config.RGB_565)
-                .centerInside()
+                .centerCrop()
                 .into(mTargetMap.get(image.getUri().toString()));
+    }
+
+    private static void resizeImageView(ImageView imageView, Image image) {
+        ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
+        layoutParams.height = image.getHeight();
+        layoutParams.width = image.getWidth();
+        imageView.setLayoutParams(layoutParams);
     }
 
     class ImageHolder extends RecyclerView.ViewHolder {

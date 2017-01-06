@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
 
         mRecyclerView = (RecyclerView) findViewById(R.id.image_rv);
         mImageListAdapter = new ImageListAdapter(this);
+        mRecyclerView.setAdapter(mImageListAdapter);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         mRecyclerView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
 
@@ -76,12 +77,13 @@ public class MainActivity extends AppCompatActivity {
                 // Take 100 images
                 while (mCursor.moveToNext() && mImageList.size() < MAX_IMAGE) {
                     long id = mCursor.getLong(mCursor.getColumnIndex(MediaStore.Images.Media._ID));
-                    Log.i(TAG, "MediaStore.Images.Media_ID=" + id + "");
 
                     String path = mCursor.getString(mCursor.getColumnIndex(MediaStore.Images.Media.DATA));
-                    int width = mCursor.getInt(mCursor.getColumnIndex(MediaStore.Images.Media.WIDTH));
                     int height = mCursor.getInt(mCursor.getColumnIndex(MediaStore.Images.Media.HEIGHT));
-                    Image image = new Image(Uri.fromFile(new File(path)), width, height);
+                    int width = mCursor.getInt(mCursor.getColumnIndex(MediaStore.Images.Media.WIDTH));
+                    Uri uri = Uri.fromFile(new File(path));
+                    Image image = new Image(uri, width, height);
+                    Log.i(TAG, image.toString());
                     mImageList.add(image);
                 }
                 mCursor.close();

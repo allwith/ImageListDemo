@@ -51,9 +51,15 @@ class ImageListAdapter extends BaseRecyclerViewAdapter<ImageListAdapter.ImageHol
         final Image image = mDataList.get(position);
         holder.mImageIv.setImageResource(R.color.defaultImageSource);
         if (image.getHeight() != mHeight) {
-            int width = mHeight * image.getWidth() / image.getHeight();
-            image.setWidth(Math.min(width, mMaxWidth));
-            image.setHeight(mHeight);
+            if (image.getHeight() == 0) {
+                image.setWidth(mHeight);
+                image.setHeight(mHeight);
+                image.setNeedResize(true);
+            } else {
+                int width = mHeight * image.getWidth() / image.getHeight();
+                image.setWidth(Math.min(width, mMaxWidth));
+                image.setHeight(mHeight);
+            }
         }
         ViewGroup.LayoutParams layoutParams = holder.mImageIv.getLayoutParams();
         layoutParams.height = image.getHeight();
@@ -62,16 +68,30 @@ class ImageListAdapter extends BaseRecyclerViewAdapter<ImageListAdapter.ImageHol
         holder.mImageIv.setTag(image.getUri().getPath());
         mRequestManager.loadFromMediaStore(image.getUri())
                 .asBitmap()
+                .centerCrop()
                 .override(image.getWidth(), image.getHeight())
                 .diskCacheStrategy(DiskCacheStrategy.RESULT)
                 .into(new SimpleTarget<Bitmap>() {
                     @Override
                     public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
                         if (holder.mImageIv.getTag().equals(image.getUri().getPath())) {
+                            if (image.isNeedResize()) {
+                                image.setHeight(resource.getHeight());
+                                image.setWidth(resource.getWidth());
+                                resizeImageView(holder.mImageIv, image);
+                                image.setNeedResize(false);
+                            }
                             holder.mImageIv.setImageBitmap(resource);
                         }
                     }
                 });
+    }
+
+    private static void resizeImageView(ImageView imageView, Image image) {
+        ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
+        layoutParams.height = image.getHeight();
+        layoutParams.width = image.getWidth();
+        imageView.setLayoutParams(layoutParams);
     }
 
     class ImageHolder extends RecyclerView.ViewHolder {

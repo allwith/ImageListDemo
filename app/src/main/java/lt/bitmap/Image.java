@@ -4,21 +4,23 @@ import android.net.Uri;
 
 public class Image {
     private final Uri mUri;
-    private int width;
-    private int height;
+    private int mWidth;
+    private int mHeight;
+    private boolean mNeedResize;
 
     public Image(Uri uri, int width, int height) {
         mUri = uri;
-        this.width = width;
-        this.height = height;
+        mWidth = width;
+        mHeight = height;
+        mNeedResize = false;
     }
 
     public void setWidth(int width) {
-        this.width = width;
+        this.mWidth = width;
     }
 
     public void setHeight(int height) {
-        this.height = height;
+        this.mHeight = height;
     }
 
     public Uri getUri() {
@@ -26,11 +28,27 @@ public class Image {
     }
 
     public int getWidth() {
-        return width;
+        return mWidth;
     }
 
     public int getHeight() {
-        return height;
+        return mHeight;
     }
 
+    public boolean isNeedResize() {
+        return mNeedResize;
+    }
+
+    public void setNeedResize(boolean needResize) {
+        mNeedResize = needResize;
+    }
+
+    @Override
+    public String toString() {
+        return "Image{" +
+                "mUri=" + mUri +
+                ", mWidth=" + mWidth +
+                ", mHeight=" + mHeight +
+                '}';
+    }
 }

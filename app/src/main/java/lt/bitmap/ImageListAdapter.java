@@ -2,32 +2,44 @@ package lt.bitmap;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.RequestManager;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.request.animation.GlideAnimation;
-import com.bumptech.glide.request.target.SimpleTarget;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 class ImageListAdapter extends BaseRecyclerViewAdapter<ImageListAdapter.ImageHolder, Image> {
 
     private static final String TAG = "ImageListAdapter";
 
-    private RequestManager mRequestManager;
+    private Picasso mPicasso;
     private int mHeight = 0;
     private int mMaxWidth;
+    private final Map<String, Target> mTargetMap;
 
     ImageListAdapter(Context context) {
         super(context);
-        mRequestManager = Glide.with(mContext.getApplicationContext());
+        mPicasso = new Picasso.Builder(context.getApplicationContext())
+                .listener(new Picasso.Listener() {
+                    @Override
+                    public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception) {
+                        Log.e(TAG, uri.toString(), exception);
+                    }
+                }).build();
+        mPicasso.setLoggingEnabled(true);
         mMaxWidth = Utils.dip2px(context, 300);
+        mTargetMap = new HashMap<>();
     }
+
 
     void setHeight(int height) {
         Log.i(TAG, "height:" + height);
@@ -40,12 +52,12 @@ class ImageListAdapter extends BaseRecyclerViewAdapter<ImageListAdapter.ImageHol
     }
 
     @Override
-    public ImageHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new ImageHolder(mInflater.inflate(R.layout.listitem_image, parent, false));
+    public ImageListAdapter.ImageHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        return new ImageListAdapter.ImageHolder(mInflater.inflate(R.layout.listitem_image, parent, false));
     }
 
     @Override
-    public void onBindViewHolder(final ImageHolder holder, int position) {
+    public void onBindViewHolder(final ImageListAdapter.ImageHolder holder, int position) {
         if (mHeight == 0) return;
 
         final Image image = mDataList.get(position);
@@ -60,18 +72,34 @@ class ImageListAdapter extends BaseRecyclerViewAdapter<ImageListAdapter.ImageHol
         layoutParams.width = image.getWidth();
         holder.mImageIv.setLayoutParams(layoutParams);
         holder.mImageIv.setTag(image.getUri().getPath());
-        mRequestManager.loadFromMediaStore(image.getUri())
-                .asBitmap()
-                .override(image.getWidth(), image.getHeight())
-                .diskCacheStrategy(DiskCacheStrategy.RESULT)
-                .into(new SimpleTarget<Bitmap>() {
-                    @Override
-                    public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
-                        if (holder.mImageIv.getTag().equals(image.getUri().getPath())) {
-                            holder.mImageIv.setImageBitmap(resource);
-                        }
-                    }
-                });
+
+        Log.i(TAG, "start load:" + image.getUri().toString());
+        Target target = new Target() {
+            @Override
+            public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                if (holder.mImageIv.getTag().equals(image.getUri().getPath())) {
+                    Log.i(TAG, "load success:" + image.getUri().toString());
+                    Log.i(TAG, "from:" + from);
+                    holder.mImageIv.setImageBitmap(bitmap);
+                }
+            }
+
+            @Override
+            public void onBitmapFailed(Drawable errorDrawable) {
+            }
+
+            @Override
+            public void onPrepareLoad(Drawable placeHolderDrawable) {
+                Log.i(TAG, "onPrepareLoad");
+            }
+        };
+        mTargetMap.put(image.getUri().toString(), target);
+
+        mPicasso.load(image.getUri())
+                .resize(image.getWidth(), image.getHeight())
+                .config(Bitmap.Config.RGB_565)
+                .centerInside()
+                .into(mTargetMap.get(image.getUri().toString()));
     }
 
     class ImageHolder extends RecyclerView.ViewHolder {

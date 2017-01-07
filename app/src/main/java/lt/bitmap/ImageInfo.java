@@ -2,13 +2,13 @@ package lt.bitmap;
 
 import android.net.Uri;
 
-public class Image {
+public class ImageInfo {
     private final Uri mUri;
     private int mWidth;
     private int mHeight;
     private boolean mNeedResize;
 
-    public Image(Uri uri, int width, int height) {
+    public ImageInfo(Uri uri, int width, int height) {
         mUri = uri;
         mWidth = width;
         mHeight = height;

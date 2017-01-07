@@ -15,7 +15,7 @@ import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 
 
-class ImageListAdapter extends BaseRecyclerViewAdapter<ImageListAdapter.ImageHolder, Image> {
+class ImageListAdapter extends BaseRecyclerViewAdapter<ImageListAdapter.ImageHolder, ImageInfo> {
 
     private static final String TAG = "ImageListAdapter";
 
@@ -48,38 +48,38 @@ class ImageListAdapter extends BaseRecyclerViewAdapter<ImageListAdapter.ImageHol
     public void onBindViewHolder(final ImageHolder holder, int position) {
         if (mHeight == 0) return;
 
-        final Image image = mDataList.get(position);
+        final ImageInfo imageInfo = mDataList.get(position);
         holder.mImageIv.setImageResource(R.color.defaultImageSource);
-        if (image.getHeight() != mHeight) {
-            if (image.getHeight() == 0) {
-                image.setWidth(mHeight);
-                image.setHeight(mHeight);
-                image.setNeedResize(true);
+        if (imageInfo.getHeight() != mHeight) {
+            if (imageInfo.getHeight() == 0) {
+                imageInfo.setWidth(mHeight);
+                imageInfo.setHeight(mHeight);
+                imageInfo.setNeedResize(true);
             } else {
-                int width = mHeight * image.getWidth() / image.getHeight();
-                image.setWidth(Math.min(width, mMaxWidth));
-                image.setHeight(mHeight);
+                int width = mHeight * imageInfo.getWidth() / imageInfo.getHeight();
+                imageInfo.setWidth(Math.min(width, mMaxWidth));
+                imageInfo.setHeight(mHeight);
             }
         }
         ViewGroup.LayoutParams layoutParams = holder.mImageIv.getLayoutParams();
-        layoutParams.height = image.getHeight();
-        layoutParams.width = image.getWidth();
+        layoutParams.height = imageInfo.getHeight();
+        layoutParams.width = imageInfo.getWidth();
         holder.mImageIv.setLayoutParams(layoutParams);
-        holder.mImageIv.setTag(image.getUri().getPath());
-        mRequestManager.loadFromMediaStore(image.getUri())
+        holder.mImageIv.setTag(imageInfo.getUri().getPath());
+        mRequestManager.loadFromMediaStore(imageInfo.getUri())
                 .asBitmap()
                 .centerCrop()
-                .override(image.getWidth(), image.getHeight())
+                .override(imageInfo.getWidth(), imageInfo.getHeight())
                 .diskCacheStrategy(DiskCacheStrategy.RESULT)
                 .into(new SimpleTarget<Bitmap>() {
                     @Override
                     public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
-                        if (holder.mImageIv.getTag().equals(image.getUri().getPath())) {
-                            if (image.isNeedResize()) {
-                                image.setHeight(resource.getHeight());
-                                image.setWidth(resource.getWidth());
-                                resizeImageView(holder.mImageIv, image);
-                                image.setNeedResize(false);
+                        if (holder.mImageIv.getTag().equals(imageInfo.getUri().getPath())) {
+                            if (imageInfo.isNeedResize()) {
+                                imageInfo.setHeight(resource.getHeight());
+                                imageInfo.setWidth(resource.getWidth());
+                                resizeImageView(holder.mImageIv, imageInfo);
+                                imageInfo.setNeedResize(false);
                             }
                             holder.mImageIv.setImageBitmap(resource);
                         }
@@ -87,10 +87,10 @@ class ImageListAdapter extends BaseRecyclerViewAdapter<ImageListAdapter.ImageHol
                 });
     }
 
-    private static void resizeImageView(ImageView imageView, Image image) {
+    private static void resizeImageView(ImageView imageView, ImageInfo imageInfo) {
         ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
-        layoutParams.height = image.getHeight();
-        layoutParams.width = image.getWidth();
+        layoutParams.height = imageInfo.getHeight();
+        layoutParams.width = imageInfo.getWidth();
         imageView.setLayoutParams(layoutParams);
     }
 

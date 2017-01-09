@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-class ImageListAdapter extends BaseRecyclerViewAdapter<ImageListAdapter.ImageHolder, Image> {
+class ImageListAdapter extends BaseRecyclerViewAdapter<ImageListAdapter.ImageHolder, ImageInfo> {
 
     private static final String TAG = "ImageListAdapter";
 
@@ -60,32 +60,32 @@ class ImageListAdapter extends BaseRecyclerViewAdapter<ImageListAdapter.ImageHol
     public void onBindViewHolder(final ImageListAdapter.ImageHolder holder, int position) {
         if (mHeight == 0) return;
 
-        final Image image = mDataList.get(position);
+        final ImageInfo imageInfo = mDataList.get(position);
         holder.mImageIv.setImageResource(R.color.defaultImageSource);
-        if (image.getHeight() != mHeight) {
-            if (image.getHeight() == 0) {
-                image.setHeight(mHeight);
-                image.setWidth(mHeight);
-                image.setNeedResize(true);
+        if (imageInfo.getHeight() != mHeight) {
+            if (imageInfo.getHeight() == 0) {
+                imageInfo.setHeight(mHeight);
+                imageInfo.setWidth(mHeight);
+                imageInfo.setNeedResize(true);
             } else {
-                int width = mHeight * image.getWidth() / image.getHeight();
-                image.setWidth(Math.min(width, mMaxWidth));
-                image.setHeight(mHeight);
+                int width = mHeight * imageInfo.getWidth() / imageInfo.getHeight();
+                imageInfo.setWidth(Math.min(width, mMaxWidth));
+                imageInfo.setHeight(mHeight);
             }
         }
 
-        resizeImageView(holder.mImageIv, image);
-        holder.mImageIv.setTag(image.getUri().getPath());
+        resizeImageView(holder.mImageIv, imageInfo);
+        holder.mImageIv.setTag(imageInfo.getUri().getPath());
 
         Target target = new Target() {
             @Override
             public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-                if (holder.mImageIv.getTag().equals(image.getUri().getPath())) {
-                    if (image.isNeedResize()) {
-                        image.setHeight(bitmap.getHeight());
-                        image.setWidth(bitmap.getWidth());
-                        resizeImageView(holder.mImageIv, image);
-                        image.setNeedResize(false);
+                if (holder.mImageIv.getTag().equals(imageInfo.getUri().getPath())) {
+                    if (imageInfo.isNeedResize()) {
+                        imageInfo.setHeight(bitmap.getHeight());
+                        imageInfo.setWidth(bitmap.getWidth());
+                        resizeImageView(holder.mImageIv, imageInfo);
+                        imageInfo.setNeedResize(false);
                     }
                     holder.mImageIv.setImageBitmap(bitmap);
                 }
@@ -100,19 +100,19 @@ class ImageListAdapter extends BaseRecyclerViewAdapter<ImageListAdapter.ImageHol
                 Log.i(TAG, "onPrepareLoad");
             }
         };
-        mTargetMap.put(image.getUri().toString(), target);
+        mTargetMap.put(imageInfo.getUri().toString(), target);
 
-        mPicasso.load(image.getUri())
-                .resize(image.getWidth(), image.getHeight())
+        mPicasso.load(imageInfo.getUri())
+                .resize(imageInfo.getWidth(), imageInfo.getHeight())
                 .config(Bitmap.Config.RGB_565)
                 .centerCrop()
-                .into(mTargetMap.get(image.getUri().toString()));
+                .into(mTargetMap.get(imageInfo.getUri().toString()));
     }
 
-    private static void resizeImageView(ImageView imageView, Image image) {
+    private static void resizeImageView(ImageView imageView, ImageInfo imageInfo) {
         ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
-        layoutParams.height = image.getHeight();
-        layoutParams.width = image.getWidth();
+        layoutParams.height = imageInfo.getHeight();
+        layoutParams.width = imageInfo.getWidth();
         imageView.setLayoutParams(layoutParams);
     }
 

@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int READ_EXTERNAL_STORAGE = 100;
     private static final int MAX_IMAGE = 100;
 
-    private List<Image> mImageList = new ArrayList<>();
+    private List<ImageInfo> mImageInfoList = new ArrayList<>();
     private RecyclerView mRecyclerView;
     private ImageListAdapter mImageListAdapter;
 
@@ -75,22 +75,22 @@ public class MainActivity extends AppCompatActivity {
 
                 if (mCursor == null) return;
                 // Take 100 images
-                while (mCursor.moveToNext() && mImageList.size() < MAX_IMAGE) {
+                while (mCursor.moveToNext() && mImageInfoList.size() < MAX_IMAGE) {
                     long id = mCursor.getLong(mCursor.getColumnIndex(MediaStore.Images.Media._ID));
 
                     String path = mCursor.getString(mCursor.getColumnIndex(MediaStore.Images.Media.DATA));
                     int height = mCursor.getInt(mCursor.getColumnIndex(MediaStore.Images.Media.HEIGHT));
                     int width = mCursor.getInt(mCursor.getColumnIndex(MediaStore.Images.Media.WIDTH));
                     Uri uri = Uri.fromFile(new File(path));
-                    Image image = new Image(uri, width, height);
-                    Log.i(TAG, image.toString());
-                    mImageList.add(image);
+                    ImageInfo imageInfo = new ImageInfo(uri, width, height);
+                    Log.i(TAG, imageInfo.toString());
+                    mImageInfoList.add(imageInfo);
                 }
                 mCursor.close();
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        mImageListAdapter.addAllData(mImageList);
+                        mImageListAdapter.addAllData(mImageInfoList);
                         mImageListAdapter.notifyDataSetChanged();
                     }
                 });
